@@ -1,10 +1,35 @@
-import { clerkMiddleware ,createRouteMatcher} from "@clerk/nextjs/server";
-const isPublicRoute = createRouteMatcher(['/site','/api/uploadthing','/agency/sign-in(.*)','/agency/sign-up(.*)']);
 
+import {
+  ClerkMiddlewareAuth,
+  clerkMiddleware,
+  createRouteMatcher,
+} from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+
+const isPublicRoute = createRouteMatcher([
+  "/site",
+  "/api/uploadthing",
+  "/agency/sign-in(.*)",
+  "/agency/sign-up(.*)",
+]);
+
+const afterAuth = async (auth: ClerkMiddlewareAuth) => {
+  // Handle afterAuth logic here
+  const userId = (await auth()).userId;
+  console.log("afterAuth logic", userId);
+  return NextResponse.next();
+};
 export default clerkMiddleware(async (auth,request)=>{
-    if(!isPublicRoute(request)){
-        await auth.protect()
-    }
+   // Handle beforeAuth logic here
+   const userId = (await auth()).userId;
+   console.log("beforeAuth logic", userId);
+
+
+  if(!isPublicRoute(request)){
+    await auth.protect()
+}
+  // Call afterAuth function
+  return afterAuth(auth);
 });
 
 export const config = {
